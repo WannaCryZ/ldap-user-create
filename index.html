@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>LDAP账号创建工具——Powered by 狼人</title>
+	<link rel="stylesheet" href="layui/css/layui.css">
+	<script src="layui/layui.js"></script>
+	<style>
+		.footer {
+		    position: absolute;
+		    bottom: 0;
+		    width: 100%;
+		    height: 50px; /* 设置页脚高度 */
+		    background-color: #f5f5f5;
+		    text-align: center;
+		  }
+		/*.body {
+			background-image: url(background.jpg);
+		}*/
+
+	</style>
+</head>
+<body class="body">
+<hr>
+<div>
+<h1 style="margin-left:20px;">LDAP账号创建工具</h1>
+<div style="margin-left:20px;"><a href="version.html" target="_self">查看版本记录</a></div>
+</div>
+<form class="layui-form" lay-filter="form_search" style="margin-top: 10px;">
+	<div class="layui-form-item">
+	    <div class="layui-input-group">
+	      <div class="layui-input-prefix"><b>
+	        邮箱账号</b>
+	      </div>
+	      <input type="text" name="email" lay-verify="required|email" class="layui-input" placeholder="输入邮箱账号" style="width: 250px;">
+	      <div class="layui-input-suffix">
+	        <button class="layui-btn layui-bg-blue" id="btn_search">查询</button>
+	      </div>
+	      
+	    </div>
+	</div>
+</form>
+<hr>
+<div style="margin-left:10px">
+	<h3>确认用户信息:</h3>
+</div>
+<script type="text/html" id="ID-table-demo-css-user">
+<div style="margin-left:10px;margin-top: 20px;">
+	<form class="layui-form" lay-filter="form_create">
+	<ul>
+      <li><strong>花名:</strong> {{= d.name }} </li><br/>
+      <li><strong>部门:</strong> {{= d.org }} </li><br/>
+      <li><strong>手机:</strong> {{= d.mobile }} </li><br/>
+      <li><strong>邮箱:</strong> {{= d.email }} </li><br/>
+      <li><strong>职位:</strong> {{= d.job }} </li><br/>
+	  {{# if(d.emp_status == 8){ }}
+      <li><strong>在职状态:</strong> <span style="color:red;" id="hr_user_status"><i class="layui-icon layui-icon-error" style="font-size: 14px; color: red;"></i> 已离职</span> </li><br/>
+      {{# }else if(d.emp_status == 3){ }}
+      <li><strong>在职状态:</strong> <span style="color:green;" id="hr_user_status"><i class="layui-icon layui-icon-success" style="font-size: 14px; color: green;"></i> 在职</span> </li><br/>
+      {{# }else{ }}
+      <li><strong>在职状态:</strong></li><br/>
+      {{# } }}
+      {{# if(d.ldap_status == 0){ }}
+      <li><strong>LDAP账号状态:</strong> <span style="color:red;" id="ldap_user_status"><i class="layui-icon layui-icon-error" style="font-size: 14px; color: red;"></i> 无账号</span> </li>
+      {{# }else if(d.ldap_status == 1){ }}
+      <li><strong>LDAP账号状态:</strong> <span style="color:green;" id="ldap_user_status"><i class="layui-icon layui-icon-success" style="font-size: 14px; color: green;"></i> 已有帐号</span> </li>
+      {{# }else{ }}
+      <li><strong>LDAP账号状态:</strong></li>
+      {{# } }}
+      <br><li>
+      	<strong>选择用户组:</strong>
+      	<select style="display: inline;" name="select_group" id="select_group">
+		    <option value="" disabled>请选择</option>
+	        <option value="people">People</option>
+	        <option value="business" selected>business</option>
+	    </select>
+	   </li>
+    </ul>
+
+	
+	  <input type="text" name="givenname" id="givenname" value="{{= d.name }}" style="display: none;">
+	  <input type="text" name="username" id="username" value="{{= d.username }}" style="display: none;">
+	  <input type="text" name="mobile" id="mobile" value="{{= d.clear_mobile }}" style="display: none;">
+	  <input type="text" name="email" id="email" value="{{= d.email }}" style="display: none;">
+	  <input type="text" name="org" id="org" value="{{= d.org }}" style="display: none;">
+	</form>
+</div>
+
+    
+<br>
+<div style="margin-left:10px;">
+	{{# if(d.ldap_status == 0){ }}
+	<button class="layui-btn layui-bg-blue" id="btn_create">创建账号</button>
+	<button class="layui-btn layui-bg-orange layui-btn-disabled"  id="btn_reset_pass" disabled>重置密码</button>
+	{{# }else if(d.ldap_status == 1){ }}
+	<button class="layui-btn layui-bg-blue layui-btn-disabled" id="btn_create" disabled>创建账号</button>
+	<button class="layui-btn layui-bg-orange"  id="btn_reset_pass">重置密码</button>
+	{{# }else{ }}
+	<button class="layui-btn layui-bg-blue layui-btn-disabled" id="btn_create" disabled>创建账号</button>
+	<button class="layui-btn layui-bg-orange layui-btn-disabled"  id="btn_reset_pass" disabled>重置密码</button>
+	{{# } }}
+</div>
+
+</script>
+
+<div id="view"></div>
+<hr>
+<script type="text/html" id="ldapUserInfo">
+	<div style="margin-left:10px">
+		<h3>LDAP账号信息:</h3>
+	</div>
+	<div style="margin-left:10px;margin-top: 20px;">
+		<ul>
+			<li style="margin-top: 10px;">您好，您所申请的LDAP账号已开通，账号信息如下：</li>
+			<li style="margin-top: 10px;"><strong>花名：</strong>{{= d.name }}</li>
+			<li style="margin-top: 10px;"><strong>账号：</strong>{{= d.username }}</li>
+			<li style="margin-top: 10px;"><strong>密码：</strong>{{= d.password }}</li>
+			<li style="margin-top: 10px;">服务器地址：https://it.example.com/</li>
+			<li style="margin-top: 10px;">使用方法如下：https://it.example.com/welcome.html</li>
+			<li style="margin-top: 10px;">如连接有问题联系：IT支持</li>
+			<li style="margin-top: 10px; font-size: 16px;"><strong style="color: red">邮件发送状态：</strong>{{= d.sendmail }}</li>
+		</ul>
+	</div>
+	<!-- <button class="layui-btn layui-bg-orange"  id="btn_copy_info" data-copy>一键复制</button> -->
+</script>
+<div id="view1"></div>
+<script>
+layui.use(function(){
+  var $ = layui.$;
+  var form = layui.form;
+  var layer = layui.layer;
+  var laytpl = layui.laytpl;
+  var table = layui.table;
+  var showUserTpl = document.getElementById('ID-table-demo-css-user').innerHTML; // 获取模板字符
+  var showLdapTpl = document.getElementById('ldapUserInfo').innerHTML; // 获取模板字符
+  var elemView1 = document.getElementById('view'); // 视图对象
+  var elemView2 = document.getElementById('view1');// 视图对象
+
+  // 搜索按钮
+  $('#btn_search').on('click', function(){
+    form.submit('form_search', function(data){
+      var field = data.field; // 获取表单全部字段值
+      //console.log(data); // 回调函数返回的 data 参数和提交事件中返回的一致
+      // 执行提交
+      layer.msg('获取用户信息中，请稍后...');
+      $.post('get_user_info.php', field, function(res){
+	        // 处理后台返回的结果
+
+	        if (res.status == 'success') {
+	            layui.use(function(){
+	                //location.reload();
+	                //console.log(res.data);
+	                var data = res.data;
+	                var select_val = $('#select_group').val();
+	                
+	                //console.log(data);
+	                layer.msg('获取成功',{time:500});
+	                laytpl(showUserTpl).render(data, function(str){
+	                	elemView1.innerHTML = str;
+	                });
+	                //点击创建按钮
+					  $('#btn_create').on('click', function(){
+
+					    form.submit('form_create', function(data){
+					      
+					      var field = data.field; // 获取表单全部字段值
+					      //console.log(data); // 回调函数返回的 data 参数和提交事件中返回的一致
+					      // 执行提交
+					      layer.msg('创建用户中，请稍后...');
+					      $.post('create_user.php', field, function(res){
+						        // 处理后台返回的结果
+						        //console.log(res);
+						        if (res.status == 'success') {
+						            layui.use(function(){
+						            	var $ = layui.jquery;
+						                //location.reload();
+						                //console.log(res.data);
+						                var data = res.data;
+						                layer.msg('创建成功');
+						                laytpl(showLdapTpl).render(data, function(str){
+						                	elemView2.innerHTML = str;
+						                });
+
+						                $('#ldap_user_status').text('已创建');
+						                $('#btn_create').addClass('layui-btn-disabled');
+						                $('#btn_create').attr('disabled',true);
+						                layui.use(['jquery', 'layer'], function(){
+										  var $ = layui.$, layer = layui.layer;
+										 
+										  // 绑定点击事件
+										  $('[data-copy]').each(function(){
+										    var that = this;
+										    $(this).on('click', function(){
+										      var text = $(that).attr('data-copy');
+										      var $tempInput = $("<input>");
+										      $("body").append($tempInput);
+										      $tempInput.val(text).select();
+										      document.execCommand("copy");
+										      $tempInput.remove();
+										      layer.msg('成功复制到剪贴板', {icon: 1});
+										    });
+										  });
+										});
+						            });
+						        } else {
+						            layer.msg('获取失败,请检查信息或联系管理员',{time:800},function(){
+						            	var data = null;
+						            	laytpl(showLdapTpl).render(data, function(str){
+						                	elemView2.innerHTML = str;
+						                });
+						            });
+						        }
+						    }, 'json');
+					    });
+					    return false;
+					  });
+					  //点击重置按钮
+					  $('#btn_reset_pass').on('click', function(){
+					    layer.msg('玩命开发中，敬请期待...',{time: 1200});
+					    return false;
+					  });
+	            });
+	        } else {
+	            layer.msg('获取失败,请检查信息或联系管理员',{time:800},function(){
+	            	var data = null;
+	            	laytpl(showUserTpl).render(data, function(str){
+	                	elemView1.innerHTML = str;
+	                });
+	            });
+	        }
+	    }, 'json');
+    });
+    return false;
+  });
+});
+
+</script>
+<div class="footer">
+  <p>Powered by 狼人 ©2024 </p>
+</div>
+</body>
+</html>
