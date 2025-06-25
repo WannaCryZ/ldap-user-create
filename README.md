@@ -1,4 +1,5 @@
 # 基于PHP开发的LDAP账号创建/删除工具
+![架构图](https://github.com/user-attachments/assets/af9fb678-f2f6-43dd-aca1-d1d3ad729624)
 # 痛点分析
 - IT运维中手动创建LDAP账号的重复性工作现状
 - 传统流程耗时、易出错、难以批量处理的局限性
@@ -19,7 +20,6 @@
 部署环境：Linux+Apache+PHP（5.5+），PHP安装ldap扩展
 修改config.php文件中的配置信息
 # 页面预览
-![架构图](https://github.com/user-attachments/assets/af9fb678-f2f6-43dd-aca1-d1d3ad729624)
 ![登录页面](https://github.com/user-attachments/assets/a1b1d279-26e8-44ad-b75d-1f26d17e5f56)
 ![创建页面](https://github.com/user-attachments/assets/a66a3053-101f-4807-afb5-a7a7395b28bc)
 ![邮件模板](https://github.com/user-attachments/assets/2ecee96c-d959-47d9-aa8e-46d5c0561427)
